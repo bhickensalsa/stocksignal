@@ -72,7 +72,7 @@ Several portions of the code were written and refactored with the assistance of 
 * **Code Refactoring:** AI was also used to refactor and improve the existing code by suggesting optimizations and identifying potential issues.
 * **Javadoc Generation:** AI was employed to write comprehensive Javadoc comments to ensure clear documentation of the codebase.
 
-While AI has been instrumental in speeding up development, the core logic and functionality have been thoroughly reviewed and tested by developers.
+While AI has been instrumental in speeding up development, the core logic and functionality have been thoroughly reviewed and tested by the developer.
 
 ## Contributing
 
@@ -80,7 +80,7 @@ Contributions are welcome! If you would like to contribute, please fork the repo
 
 ## License
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
+// TODO: This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Acknowledgements
 
