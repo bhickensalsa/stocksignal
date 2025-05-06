@@ -21,4 +21,9 @@ public interface Strategy {
      * @return true if the strategy signals a sell, false otherwise
      */
     boolean shouldSell(StockData Stock);
+
+    /**
+     * Calculates and updates all the necessary indicators (e.g., SMAs, MACD, etc.).
+     */
+    void calculateIndicators();
 }

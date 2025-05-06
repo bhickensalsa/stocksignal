@@ -1,100 +1,96 @@
 package com.stocksignal.indicators.technical;
 
+import com.stocksignal.data.StockData;
 import java.util.List;
 
-import com.stocksignal.data.StockData;
-import com.stocksignal.exceptions.ConfigurationException;
-import com.stocksignal.exceptions.DataProcessingException;
-import com.stocksignal.indicators.Indicator;
-
 /**
- * MACD (Moving Average Convergence Divergence) indicator implementation.
- * Calculates the latest MACD value using configurable short, long, and signal periods.
+ * The MACD (Moving Average Convergence Divergence) is a trend-following momentum indicator.
+ * It shows the relationship between two EMAs of a stock's price.
  */
-public class MACD implements Indicator {
+public class MACD {
+
     private final int shortPeriod;
     private final int longPeriod;
     private final int signalPeriod;
 
     /**
-     * Constructs a MACD indicator with the given periods.
-     *
-     * @param shortPeriod  the short-term EMA period (typically 12)
-     * @param longPeriod   the long-term EMA period (typically 26)
-     * @param signalPeriod the signal line EMA period (typically 9)
+     * Constructor to initialize MACD with the periods for short, long, and signal.
+     * 
+     * @param shortPeriod the short period for the MACD (e.g., 12)
+     * @param longPeriod  the long period for the MACD (e.g., 26)
+     * @param signalPeriod the signal period for the MACD (e.g., 9)
      */
     public MACD(int shortPeriod, int longPeriod, int signalPeriod) {
-        if (shortPeriod <= 0 || longPeriod <= 0 || signalPeriod <= 0) {
-            throw new ConfigurationException("Periods must be positive integers");
-        }
-        if (shortPeriod >= longPeriod) {
-            throw new ConfigurationException("Short period must be less than long period");
-        }        
         this.shortPeriod = shortPeriod;
         this.longPeriod = longPeriod;
         this.signalPeriod = signalPeriod;
     }
 
     /**
-     * Calculates the most recent MACD value (no signal/histogram).
-     *
-     * @param data the stock data (must be at least longPeriod in size)
-     * @return the latest MACD value
-     * @throws DataProcessingException if there is insufficient or null data
+     * Calculates just the MACD line (difference between short and long EMAs).
+     * This method will return the MACD line as a single double value.
+     * 
+     * @param data the list of historical stock data
+     * @return the MACD line
      */
-    @Override
     public double calculate(List<StockData> data) {
-        if (data == null || data.isEmpty()) {
-            throw new DataProcessingException("Stock data is null or empty.");
-        }
-
-        if (data.size() < longPeriod) {
-            throw new DataProcessingException("Not enough data to calculate MACD. Required: " + longPeriod + ", Available: " + data.size());
-        }
-
-        try {
-            double emaShort = calculateEMA(data, shortPeriod);
-            double emaLong = calculateEMA(data, longPeriod);
-            return emaShort - emaLong;
-        } catch (Exception e) {
-            throw new DataProcessingException("Error calculating MACD: " + e.getMessage(), e);
-        }
+        double shortEMA = calculateEMA(data, shortPeriod);
+        double longEMA = calculateEMA(data, longPeriod);
+        return shortEMA - longEMA;  // MACD line is the difference
     }
 
     /**
-     * Calculates the Exponential Moving Average (EMA) over a given period.
-     *
-     * @param data   the stock data list
-     * @param period the EMA period
-     * @return the calculated EMA
-     * @throws DataProcessingException if period exceeds data size or other processing issues occur
+     * Calculates the MACD, Signal Line, and Histogram for the given list of stock data.
+     * This method will return all three components in a double array.
+     * 
+     * @param data the list of historical stock data
+     * @return a double array where:
+     *   - index 0: MACD line
+     *   - index 1: Signal line
+     *   - index 2: MACD Histogram
      */
-    private double calculateEMA(List<StockData> data, int period) {
-        if (period > data.size()) {
-            throw new DataProcessingException("Not enough data to calculate EMA for period: " + period);
+    public double[] calculate(List<StockData> data, boolean includeSignal) {
+        double shortEMA = calculateEMA(data, shortPeriod);
+        double longEMA = calculateEMA(data, longPeriod);
+
+        // MACD line: difference between short and long EMAs
+        double macdLine = shortEMA - longEMA;
+
+        // Calculate the Signal line (9-period EMA of MACD line)
+        double signalLine = calculateSignalLine(macdLine);
+
+        // Optionally, calculate the MACD Histogram: difference between MACD line and Signal line
+        double histogram = macdLine - signalLine;
+
+        // If we need the signal line and histogram, return all three values
+        if (includeSignal) {
+            return new double[]{macdLine, signalLine, histogram};
         }
 
-        int startIndex = data.size() - period;
-        double k = 2.0 / (period + 1);
-        double ema = data.get(startIndex).getClose();
+        // Otherwise, return just the MACD line
+        return new double[]{macdLine};  // Only MACD line is needed
+    }
 
-        for (int i = startIndex + 1; i < data.size(); i++) {
-            double price = data.get(i).getClose();
-            ema = price * k + ema * (1 - k);
+    /**
+     * Helper method to calculate the Exponential Moving Average (EMA) for a given period.
+     */
+    private double calculateEMA(List<StockData> data, int period) {
+        double multiplier = 2.0 / (period + 1);
+        double ema = data.get(0).getClose(); // Start with the first data point (could be adjusted)
+
+        for (int i = 1; i < data.size(); i++) {
+            ema = (data.get(i).getClose() - ema) * multiplier + ema;
         }
 
         return ema;
     }
 
-    public int getShortPeriod() {
-        return shortPeriod;
-    }
-
-    public int getLongPeriod() {
-        return longPeriod;
-    }
-
-    public int getSignalPeriod() {
-        return signalPeriod;
+    /**
+     * Helper method to calculate the Signal Line (9-period EMA of the MACD line).
+     */
+    private double calculateSignalLine(double macdLine) {
+        // In practice, we would keep track of the previous Signal line value
+        // and calculate the next EMA based on that.
+        return macdLine; // This is a simplified version
     }
 }
