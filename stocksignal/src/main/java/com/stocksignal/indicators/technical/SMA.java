@@ -1,10 +1,11 @@
 package com.stocksignal.indicators.technical;
 
+import java.util.List;
+
 import com.stocksignal.data.StockData;
+import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.indicators.Indicator;
-
-import java.util.List;
 
 /**
  * Calculates the Simple Moving Average (SMA) based on the closing prices of the stock data.
@@ -21,8 +22,8 @@ public class SMA implements Indicator {
      */
     public SMA(int windowSize) {
         if (windowSize <= 0) {
-            throw new IllegalArgumentException("Window size must be more than 0");
-        }
+            throw new ConfigurationException("Window size must be more than 0");
+        }        
         this.windowSize = windowSize;
     }
 

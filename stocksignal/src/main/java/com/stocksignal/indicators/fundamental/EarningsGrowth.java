@@ -1,5 +1,6 @@
 package com.stocksignal.indicators.fundamental;
 
+import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
 
 /**
@@ -18,12 +19,12 @@ public class EarningsGrowth {
      */
     public EarningsGrowth(double currentEarnings, double previousEarnings) {
         if (currentEarnings < 0) {
-            throw new IllegalArgumentException("Current earnings must not be negative.");
+            throw new ConfigurationException("Current earnings must not be negative.");
         }
         if (previousEarnings < 0) {
-            throw new IllegalArgumentException("Previous earnings must not be negative.");
+            throw new ConfigurationException("Previous earnings must not be negative.");
         }
-
+        
         this.currentEarnings = currentEarnings;
         this.previousEarnings = previousEarnings;
     }

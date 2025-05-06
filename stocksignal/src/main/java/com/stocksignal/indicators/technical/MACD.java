@@ -3,6 +3,7 @@ package com.stocksignal.indicators.technical;
 import java.util.List;
 
 import com.stocksignal.data.StockData;
+import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.indicators.Indicator;
 
@@ -24,11 +25,11 @@ public class MACD implements Indicator {
      */
     public MACD(int shortPeriod, int longPeriod, int signalPeriod) {
         if (shortPeriod <= 0 || longPeriod <= 0 || signalPeriod <= 0) {
-            throw new IllegalArgumentException("Periods must be positive integers");
+            throw new ConfigurationException("Periods must be positive integers");
         }
         if (shortPeriod >= longPeriod) {
-            throw new IllegalArgumentException("Short period must be less than long period");
-        }
+            throw new ConfigurationException("Short period must be less than long period");
+        }        
         this.shortPeriod = shortPeriod;
         this.longPeriod = longPeriod;
         this.signalPeriod = signalPeriod;

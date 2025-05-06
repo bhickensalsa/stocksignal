@@ -1,5 +1,6 @@
 package com.stocksignal.indicators.fundamental;
 
+import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
 
 /**
@@ -18,10 +19,10 @@ public class PE_Ratio {
      */
     public PE_Ratio(double currentPrice, double earningsPerShare) {
         if (currentPrice <= 0) {
-            throw new IllegalArgumentException("Current price must be greater than zero.");
+            throw new ConfigurationException("Current price must be greater than zero.");
         }
         if (earningsPerShare <= 0) {
-            throw new IllegalArgumentException("Earnings per share must be greater than zero.");
+            throw new ConfigurationException("Earnings per share must be greater than zero.");
         }
 
         this.currentPrice = currentPrice;

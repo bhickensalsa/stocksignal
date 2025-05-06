@@ -1,8 +1,8 @@
 package com.stocksignal.strategies;
 
-import com.stocksignal.indicators.technical.SMA;
 import com.stocksignal.data.StockData;
 import com.stocksignal.indicators.technical.MACD;
+import com.stocksignal.indicators.technical.SMA;
 
 /**
  * The TrendFollowingStrategy class implements the Strategy interface and represents a 

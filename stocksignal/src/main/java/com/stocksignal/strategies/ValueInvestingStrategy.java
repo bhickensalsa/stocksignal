@@ -1,8 +1,10 @@
 package com.stocksignal.strategies;
 
-import com.stocksignal.indicators.fundamental.PE_Ratio;
-import com.stocksignal.indicators.fundamental.EarningsGrowth;
 import com.stocksignal.data.StockData;
+import com.stocksignal.exceptions.ConfigurationException;
+import com.stocksignal.exceptions.DataProcessingException;
+import com.stocksignal.indicators.fundamental.EarningsGrowth;
+import com.stocksignal.indicators.fundamental.PE_Ratio;
 import com.stocksignal.utils.AppLogger;
 
 public class ValueInvestingStrategy {
@@ -18,8 +20,8 @@ public class ValueInvestingStrategy {
      */
     public ValueInvestingStrategy(double maxPERatio, double minEarningsGrowth) {
         if (maxPERatio <= 0 || minEarningsGrowth <= 0) {
-            throw new IllegalArgumentException("PE ratio and earnings growth must be positive values.");
-        }
+            throw new ConfigurationException("PE ratio and earnings growth must be positive values.");
+        }        
         this.maxPERatio = maxPERatio;
         this.minEarningsGrowth = minEarningsGrowth;
     }
@@ -32,15 +34,13 @@ public class ValueInvestingStrategy {
      */
     public boolean shouldBuy(StockData stock) {
         if (stock == null) {
-            AppLogger.error("Stock data is null.");
-            return false;
+            throw new DataProcessingException("Stock data is null.");
         }
 
         // Validate earnings data
         if (stock.getCurrentEarningsPerShare() <= 0 || stock.getPreviousEarningsPerShare() <= 0) {
-            AppLogger.error("Invalid earnings data for stock {}: current EPS = {}, previous EPS = {}.",
-                    stock.getSymbol(), stock.getCurrentEarningsPerShare(), stock.getPreviousEarningsPerShare());
-            return false;
+            throw new DataProcessingException("Invalid earnings data for stock {}: current EPS = {}, previous EPS = {}." 
+            + stock.getSymbol() + stock.getCurrentEarningsPerShare() + stock.getPreviousEarningsPerShare());
         }
 
         PE_Ratio peRatio = new PE_Ratio(stock.getClose(), stock.getCurrentEarningsPerShare());
@@ -66,15 +66,15 @@ public class ValueInvestingStrategy {
      */
     public boolean shouldSell(StockData stock) {
         if (stock == null) {
-            AppLogger.error("Stock data is null.");
-            return false;
+            throw new DataProcessingException("Stock data is null.");
         }
 
         // Validate earnings data
         if (stock.getCurrentEarningsPerShare() <= 0 || stock.getPreviousEarningsPerShare() <= 0) {
-            AppLogger.error("Invalid earnings data for stock {}: current EPS = {}, previous EPS = {}.",
-                    stock.getSymbol(), stock.getCurrentEarningsPerShare(), stock.getPreviousEarningsPerShare());
-            return false;
+            if (stock.getCurrentEarningsPerShare() <= 0 || stock.getPreviousEarningsPerShare() <= 0) {
+                throw new DataProcessingException("Invalid earnings data for stock {}: current EPS = {}, previous EPS = {}." 
+                + stock.getSymbol() + stock.getCurrentEarningsPerShare() + stock.getPreviousEarningsPerShare());
+            }
         }
 
         PE_Ratio peRatio = new PE_Ratio(stock.getClose(), stock.getCurrentEarningsPerShare());
