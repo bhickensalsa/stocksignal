@@ -49,10 +49,12 @@ public class GoldenCrossStrategy implements Strategy {
             SMA shortSMA = new SMA(shortPeriod);
             SMA longSMA = new SMA(longPeriod);
 
+            // Use the most recent data for current SMA calculations
             List<StockData> recentData = historicalData.subList(historicalData.size() - longPeriod, historicalData.size());
             currentShortSMA = shortSMA.calculate(recentData);
             currentLongSMA = longSMA.calculate(recentData);
 
+            // Use the previous data for previous SMA calculations
             List<StockData> previousData = historicalData.subList(historicalData.size() - longPeriod - 1, historicalData.size() - 1);
             previousShortSMA = shortSMA.calculate(previousData);
             previousLongSMA = longSMA.calculate(previousData);
@@ -62,12 +64,16 @@ public class GoldenCrossStrategy implements Strategy {
     }
 
     @Override
-    public boolean shouldBuy(StockData stock) {
+    public boolean shouldBuy() {
+        // The latest data (last element in historicalData) is used for decision
+        calculateIndicators();
         return previousShortSMA <= previousLongSMA && currentShortSMA > currentLongSMA;
     }
 
     @Override
-    public boolean shouldSell(StockData stock) {
+    public boolean shouldSell() {
+        // The latest data (last element in historicalData) is used for decision
+        calculateIndicators();
         return previousShortSMA >= previousLongSMA && currentShortSMA < currentLongSMA;
     }
 }

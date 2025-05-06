@@ -1,7 +1,12 @@
 package com.stocksignal;
 
-import com.stocksignal.data.AlphaVantageFetcher;
+import java.io.IOException;
+import java.util.List;
+
+import com.stocksignal.data.AlphaVantageClient;
 import com.stocksignal.data.StockData;
+import com.stocksignal.exceptions.ConfigurationException;
+import com.stocksignal.strategies.TrendFollowingStrategy;
 
 /**
  * The Main class is the entry point for running the Stock Signal application.
@@ -17,23 +22,29 @@ public class Main {
      * @param args command-line arguments (if any)
      */
     public static void main(String[] args) {
-        // Initialize the fetcher to collect stock data from Alpha Vantage
-        AlphaVantageFetcher fetcher = new AlphaVantageFetcher();
-        
-        // Collect the latest stock data for a specific symbol (e.g., GOOGL)
-        StockData stockData = fetcher.collectLatestDailyData("GOOGL");
+        String symbol = "GOOGL"; // Example symbol
+        int smaPeriod = 50;
+        List<StockData> historicalData;
 
-        // Check if the stock data was fetched successfully
-        if (stockData != null) {
-            // Print out the stock information to the console
-            System.out.println("Stock Symbol: " + stockData.getSymbol());
-            System.out.println("Date: " + stockData.getDate());
-            System.out.println("Open: " + stockData.getOpen());
-            System.out.println("Close: " + stockData.getClose());
-            System.out.println("EPS (Current): " + stockData.getCurrentEarningsPerShare());
-            System.out.println("EPS (Previous): " + stockData.getPreviousEarningsPerShare());
+        AlphaVantageClient fetcher = new AlphaVantageClient();
+
+        try {
+            historicalData = fetcher.fetchDailyStockData(symbol, false);
+        } catch (IOException e) {
+            throw new ConfigurationException("Couldnt fetch historical data. " + e.getMessage());
+        }
+
+        TrendFollowingStrategy TFStrategy = new TrendFollowingStrategy(historicalData, smaPeriod);
+
+        boolean buy = TFStrategy.shouldBuy();
+        boolean sell = TFStrategy.shouldSell();
+        if (buy) {
+            System.out.println("Should buy: " + buy);
+        }
+        if (sell) {
+            System.out.println("Should sell: " + sell);
         } else {
-            System.out.println("Failed to fetch stock data.");
+            System.out.println("Hold");
         }
     }
 }

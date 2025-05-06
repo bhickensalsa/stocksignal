@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class TrendFollowingStrategy implements Strategy {
 
-    private final List<StockData> historicalData;
+    private List<StockData> historicalData;
     private final int smaPeriod;
     private final MACD macd;
     private final SMA sma;
@@ -38,11 +38,22 @@ public class TrendFollowingStrategy implements Strategy {
     }
 
     /**
+     * Refreshes the historical data from an external source (e.g., an API client).
+     * This can be called to update the historical data with fresh stock data.
+     *
+     * @param newHistoricalData The fresh historical data to use.
+     */
+    public void refreshHistoricalData(List<StockData> newHistoricalData) {
+        this.historicalData = newHistoricalData;
+    }
+
+    /**
      * Precomputes the indicators (SMA, MACD) to be used in the decision methods.
      */
     @Override
     public void calculateIndicators() {
         try {
+            // Get the most recent data (sublist of the last smaPeriod data points)
             List<StockData> recentData = historicalData.subList(historicalData.size() - smaPeriod, historicalData.size());
 
             this.currentSMA = sma.calculate(recentData);
@@ -57,17 +68,35 @@ public class TrendFollowingStrategy implements Strategy {
 
     /**
      * Determines a buy signal based on the current price being above the SMA and MACD crossover.
+     * Uses the latest stock data (from historicalData) for decision-making.
      */
     @Override
-    public boolean shouldBuy(StockData stock) {
-        return stock.getClose() > currentSMA && macdLine > macdSignal;
+    public boolean shouldBuy() {
+        // If historical data is empty, throw an exception
+        if (historicalData.isEmpty()) {
+            throw new DataProcessingException("Historical data is empty, cannot determine buy signal.");
+        }
+
+        // Get the most recent stock data (latest stock data in historicalData)
+        StockData latestStockData = historicalData.get(historicalData.size() - 1);
+
+        return latestStockData.getClose() > currentSMA && macdLine > macdSignal;
     }
 
     /**
      * Determines a sell signal based on the current price being below the SMA and MACD crossover.
+     * Uses the latest stock data (from historicalData) for decision-making.
      */
     @Override
-    public boolean shouldSell(StockData stock) {
-        return stock.getClose() < currentSMA && macdLine < macdSignal;
+    public boolean shouldSell() {
+        // If historical data is empty, throw an exception
+        if (historicalData.isEmpty()) {
+            throw new DataProcessingException("Historical data is empty, cannot determine sell signal.");
+        }
+
+        // Get the most recent stock data (latest stock data in historicalData)
+        StockData latestStockData = historicalData.get(historicalData.size() - 1);
+
+        return latestStockData.getClose() < currentSMA && macdLine < macdSignal;
     }
 }

@@ -7,28 +7,34 @@ import com.stocksignal.indicators.fundamental.EarningsGrowth;
 import com.stocksignal.indicators.fundamental.PE_Ratio;
 import com.stocksignal.utils.AppLogger;
 
+import java.util.List;
+
 public class ValueInvestingStrategy implements Strategy {
 
     private final double maxPERatio;
     private final double minEarningsGrowth;
 
-    private StockData currentStock;
+    private List<StockData> historicalData;
     private double calculatedPE;
     private double earningsGrowth;
 
-    public ValueInvestingStrategy(double maxPERatio, double minEarningsGrowth) {
+    public ValueInvestingStrategy(double maxPERatio, double minEarningsGrowth, List<StockData> historicalData) {
         if (maxPERatio <= 0 || minEarningsGrowth <= 0) {
             throw new ConfigurationException("PE ratio and earnings growth must be positive values.");
         }
         this.maxPERatio = maxPERatio;
         this.minEarningsGrowth = minEarningsGrowth;
+        this.historicalData = historicalData;
     }
 
     @Override
     public void calculateIndicators() {
-        if (currentStock == null) {
-            throw new DataProcessingException("Stock data must be set before calculating indicators.");
+        if (historicalData == null || historicalData.isEmpty()) {
+            throw new DataProcessingException("Historical stock data must be set before calculating indicators.");
         }
+
+        // Use the most recent stock data from the historical data
+        StockData currentStock = historicalData.get(historicalData.size() - 1);
 
         double epsCurrent = currentStock.getCurrentEarningsPerShare();
         double epsPrevious = currentStock.getPreviousEarningsPerShare();
@@ -48,28 +54,38 @@ public class ValueInvestingStrategy implements Strategy {
     }
 
     @Override
-    public boolean shouldBuy(StockData stock) {
-        this.currentStock = stock;
+    public boolean shouldBuy() {
+        if (historicalData == null || historicalData.isEmpty()) {
+            throw new DataProcessingException("Historical stock data is required to determine buy signal.");
+        }
+
+        // Use the most recent stock data from the historical data
+        StockData currentStock = historicalData.get(historicalData.size() - 1);
         calculateIndicators();
 
         boolean buy = calculatedPE < maxPERatio && earningsGrowth >= minEarningsGrowth;
         if (buy) {
             AppLogger.info("Buy signal: Stock {} | PE = {} | Earnings Growth = {}",
-                stock.getSymbol(), calculatedPE, earningsGrowth);
+                currentStock.getSymbol(), calculatedPE, earningsGrowth);
         }
 
         return buy;
     }
 
     @Override
-    public boolean shouldSell(StockData stock) {
-        this.currentStock = stock;
+    public boolean shouldSell() {
+        if (historicalData == null || historicalData.isEmpty()) {
+            throw new DataProcessingException("Historical stock data is required to determine sell signal.");
+        }
+
+        // Use the most recent stock data from the historical data
+        StockData currentStock = historicalData.get(historicalData.size() - 1);
         calculateIndicators();
 
         boolean sell = calculatedPE >= maxPERatio || earningsGrowth < 0;
         if (sell) {
             AppLogger.info("Sell signal: Stock {} | PE = {} | Earnings Growth = {}",
-                stock.getSymbol(), calculatedPE, earningsGrowth);
+                currentStock.getSymbol(), calculatedPE, earningsGrowth);
         }
 
         return sell;
