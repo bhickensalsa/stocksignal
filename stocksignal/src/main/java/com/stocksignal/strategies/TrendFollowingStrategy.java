@@ -1,6 +1,7 @@
 package com.stocksignal.strategies;
 
 import com.stocksignal.indicators.technical.SMA;
+import com.stocksignal.data.StockData;
 import com.stocksignal.indicators.technical.MACD;
 
 /**
@@ -26,7 +27,7 @@ public class TrendFollowingStrategy implements Strategy {
      * 
      * @return true if both Moving Average and MACD indicate a buy signal, false otherwise
      */
-    public boolean shouldBuy() {
+    public boolean shouldBuy(StockData stock) {
         // Example logic for buying signal
         //return movingAverage.calculate(null) > 0 && macd.calculate(null) > 0;
         return false;
@@ -38,7 +39,7 @@ public class TrendFollowingStrategy implements Strategy {
      * 
      * @return true if both Moving Average and MACD indicate a sell signal, false otherwise
      */
-    public boolean shouldSell() {
+    public boolean shouldSell(StockData stock) {
         // Example logic for selling signal
         //return movingAverage.calculate(null) < 0 && macd.calculate(null) < 0;
         return false;

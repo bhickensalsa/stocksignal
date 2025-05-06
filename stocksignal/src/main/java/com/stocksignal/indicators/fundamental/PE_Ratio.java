@@ -1,9 +1,44 @@
 package com.stocksignal.indicators.fundamental;
 
+import com.stocksignal.exceptions.DataProcessingException;
+
 /**
- * The PE_Ratio class represents a fundamental financial indicator related to the Price-to-Earnings (P/E) ratio.
- * It can be used to store or calculate the P/E ratio of a company for fundamental analysis.
+ * This class calculates the Price-to-Earnings (PE) Ratio.
  */
 public class PE_Ratio {
-    // No specific logic yet in this class
+
+    private final double currentPrice;
+    private final double earningsPerShare;
+
+    /**
+     * Constructs a PE_Ratio calculator with current price and earnings per share.
+     *
+     * @param currentPrice     the current stock price
+     * @param earningsPerShare the earnings per share
+     */
+    public PE_Ratio(double currentPrice, double earningsPerShare) {
+        if (currentPrice <= 0) {
+            throw new IllegalArgumentException("Current price must be greater than zero.");
+        }
+        if (earningsPerShare <= 0) {
+            throw new IllegalArgumentException("Earnings per share must be greater than zero.");
+        }
+
+        this.currentPrice = currentPrice;
+        this.earningsPerShare = earningsPerShare;
+    }
+
+    /**
+     * Calculates the PE ratio.
+     *
+     * @return the calculated PE ratio
+     * @throws DataProcessingException if earnings per share is zero or negative
+     */
+    public double calculate() {
+        try {
+            return currentPrice / earningsPerShare;
+        } catch (ArithmeticException e) {
+            throw new DataProcessingException("Failed to calculate PE Ratio due to arithmetic error.", e);
+        }
+    }
 }

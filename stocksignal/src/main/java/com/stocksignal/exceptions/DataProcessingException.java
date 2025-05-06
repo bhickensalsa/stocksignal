@@ -1,9 +1,20 @@
 package com.stocksignal.exceptions;
 
-/**
- * The DataProcessingException class represents an exception that is thrown 
- * when an error occurs during data processing within the application.
- */
-public class DataProcessingException {
-    // No specific logic yet in this exception class
+import com.stocksignal.utils.AppLogger;
+
+public class DataProcessingException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public DataProcessingException(String message) {
+        super(message);
+        // Optionally log or handle internal processing
+        AppLogger.error("DataProcessingException: " + message);
+    }
+
+    public DataProcessingException(String message, Throwable cause) {
+        super(message, cause);
+        // Optionally log or handle internal processing
+        AppLogger.error("DataProcessingException: " + message, cause);
+    }
 }

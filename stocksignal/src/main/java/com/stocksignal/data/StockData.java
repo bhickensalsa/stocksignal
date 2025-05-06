@@ -4,75 +4,68 @@ import java.time.LocalDate;
 
 /**
  * {@code StockData} represents a single day's trading information for a specific stock.
- *
- * <p>This includes open, close, high, low prices, trading volume, and the date of the data point.
+ * This includes open, close, high, low prices, trading volume, and earnings per share.
  */
 public class StockData {
-    
-    /** The date for which this stock data applies */
+
+    private String symbol;
     private LocalDate date;
-
-    /** The price at which the stock opened on this day */
     private double open;
-
-    /** The price at which the stock closed on this day */
     private double close;
-
-    /** The highest price the stock reached during the day */
     private double high;
-
-    /** The lowest price the stock reached during the day */
     private double low;
-
-    /** The total number of shares traded during the day */
     private long volume;
+    private double currentEarningsPerShare;  // Current EPS
+    private double previousEarningsPerShare; // Previous EPS
 
-    /**
-     * Constructs a new {@code StockData} object with the given parameters.
-     *
-     * @param date the trading date
-     * @param open the opening price
-     * @param close the closing price
-     * @param high the highest price of the day
-     * @param low the lowest price of the day
-     * @param volume the total trading volume
-     */
-    public StockData(LocalDate date, double open, double close, double high, double low, long volume) {
+    // Constructor
+    public StockData(String symbol, LocalDate date, double open, double close, double high, double low, 
+                     long volume, double currentEarningsPerShare, double previousEarningsPerShare) {
+        this.symbol = symbol;
         this.date = date;
         this.open = open;
         this.close = close;
         this.high = high;
         this.low = low;
         this.volume = volume;
+        this.currentEarningsPerShare = currentEarningsPerShare;  // Store current EPS
+        this.previousEarningsPerShare = previousEarningsPerShare; // Store previous EPS
     }
 
-    /**
-     * @return the date of the stock data
-     */
-    public LocalDate getDate() { return date; }
+    // Getters for all fields
+    public String getSymbol() {
+        return symbol;
+    }
 
-    /**
-     * @return the opening price
-     */
-    public double getOpen() { return open; }
+    public LocalDate getDate() {
+        return date;
+    }
 
-    /**
-     * @return the closing price
-     */
-    public double getClose() { return close; }
+    public double getOpen() {
+        return open;
+    }
 
-    /**
-     * @return the highest price during the day
-     */
-    public double getHigh() { return high; }
+    public double getClose() {
+        return close;
+    }
 
-    /**
-     * @return the lowest price during the day
-     */
-    public double getLow() { return low; }
+    public double getHigh() {
+        return high;
+    }
 
-    /**
-     * @return the trading volume
-     */
-    public long getVolume() { return volume; }
+    public double getLow() {
+        return low;
+    }
+
+    public long getVolume() {
+        return volume;
+    }
+
+    public double getCurrentEarningsPerShare() {
+        return currentEarningsPerShare;
+    }
+
+    public double getPreviousEarningsPerShare() {
+        return previousEarningsPerShare;
+    }
 }

@@ -3,6 +3,7 @@ package com.stocksignal.indicators.technical;
 import java.util.List;
 
 import com.stocksignal.data.StockData;
+import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.indicators.Indicator;
 
 /**
@@ -38,22 +39,40 @@ public class MACD implements Indicator {
      *
      * @param data the stock data (must be at least longPeriod in size)
      * @return the latest MACD value
+     * @throws DataProcessingException if there is insufficient or null data
      */
     @Override
     public double calculate(List<StockData> data) {
-        if (data.size() < longPeriod) {
-            throw new IllegalArgumentException("Not enough data to calculate MACD");
+        if (data == null || data.isEmpty()) {
+            throw new DataProcessingException("Stock data is null or empty.");
         }
 
-        double emaShort = calculateEMA(data, shortPeriod);
-        double emaLong = calculateEMA(data, longPeriod);
-        return emaShort - emaLong;
+        if (data.size() < longPeriod) {
+            throw new DataProcessingException("Not enough data to calculate MACD. Required: " + longPeriod + ", Available: " + data.size());
+        }
+
+        try {
+            double emaShort = calculateEMA(data, shortPeriod);
+            double emaLong = calculateEMA(data, longPeriod);
+            return emaShort - emaLong;
+        } catch (Exception e) {
+            throw new DataProcessingException("Error calculating MACD: " + e.getMessage(), e);
+        }
     }
 
     /**
-     * Helper method to calculate EMA.
+     * Calculates the Exponential Moving Average (EMA) over a given period.
+     *
+     * @param data   the stock data list
+     * @param period the EMA period
+     * @return the calculated EMA
+     * @throws DataProcessingException if period exceeds data size or other processing issues occur
      */
     private double calculateEMA(List<StockData> data, int period) {
+        if (period > data.size()) {
+            throw new DataProcessingException("Not enough data to calculate EMA for period: " + period);
+        }
+
         int startIndex = data.size() - period;
         double k = 2.0 / (period + 1);
         double ema = data.get(startIndex).getClose();
