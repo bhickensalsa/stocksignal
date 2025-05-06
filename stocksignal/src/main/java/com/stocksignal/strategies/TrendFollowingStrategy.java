@@ -1,6 +1,6 @@
 package com.stocksignal.strategies;
 
-import com.stocksignal.indicators.technical.MovingAverage;
+import com.stocksignal.indicators.technical.SMA;
 import com.stocksignal.indicators.technical.MACD;
 
 /**
@@ -9,15 +9,15 @@ import com.stocksignal.indicators.technical.MACD;
  * and MACD to decide when to buy or sell a stock.
  */
 public class TrendFollowingStrategy implements Strategy {
-    private MovingAverage movingAverage;
+    private SMA simpleMovingAverage;
     private MACD macd;
 
     /**
      * Constructs a TrendFollowingStrategy instance and initializes the Moving Average and MACD indicators.
      */
     public TrendFollowingStrategy() {
-        movingAverage = new MovingAverage();
-        macd = new MACD();
+        simpleMovingAverage = new SMA(200);
+        macd = new MACD(12, 26, 9);
     }
 
     /**
@@ -28,7 +28,8 @@ public class TrendFollowingStrategy implements Strategy {
      */
     public boolean shouldBuy() {
         // Example logic for buying signal
-        return movingAverage.calculate(null) > 0 && macd.calculate(null) > 0;
+        //return movingAverage.calculate(null) > 0 && macd.calculate(null) > 0;
+        return false;
     }
 
     /**
@@ -39,6 +40,7 @@ public class TrendFollowingStrategy implements Strategy {
      */
     public boolean shouldSell() {
         // Example logic for selling signal
-        return movingAverage.calculate(null) < 0 && macd.calculate(null) < 0;
+        //return movingAverage.calculate(null) < 0 && macd.calculate(null) < 0;
+        return false;
     }
 }

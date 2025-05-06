@@ -1,87 +1,78 @@
 package com.stocksignal.data;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
- * The StockData class represents stock information for a specific ticker, 
- * including its price, volume, and the date of the data.
+ * {@code StockData} represents a single day's trading information for a specific stock.
+ *
+ * <p>This includes open, close, high, low prices, trading volume, and the date of the data point.
  */
 public class StockData {
     
-    private String ticker;
-    private double price;
-    private double volume;
-    private Date date;
+    /** The date for which this stock data applies */
+    private LocalDate date;
+
+    /** The price at which the stock opened on this day */
+    private double open;
+
+    /** The price at which the stock closed on this day */
+    private double close;
+
+    /** The highest price the stock reached during the day */
+    private double high;
+
+    /** The lowest price the stock reached during the day */
+    private double low;
+
+    /** The total number of shares traded during the day */
+    private long volume;
 
     /**
-     * Gets the ticker symbol for the stock.
-     * 
-     * @return the ticker symbol of the stock
+     * Constructs a new {@code StockData} object with the given parameters.
+     *
+     * @param date the trading date
+     * @param open the opening price
+     * @param close the closing price
+     * @param high the highest price of the day
+     * @param low the lowest price of the day
+     * @param volume the total trading volume
      */
-    public String getTicker() {
-        return ticker;
-    }
-
-    /**
-     * Sets the ticker symbol for the stock.
-     * 
-     * @param ticker the ticker symbol of the stock
-     */
-    public void setTicker(String ticker) {
-        this.ticker = ticker;
-    }
-
-    /**
-     * Gets the price of the stock.
-     * 
-     * @return the price of the stock
-     */
-    public double getPrice() {
-        return price;
-    }
-
-    /**
-     * Sets the price of the stock.
-     * 
-     * @param price the price of the stock
-     */
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    /**
-     * Gets the trading volume of the stock.
-     * 
-     * @return the volume of the stock traded
-     */
-    public double getVolume() {
-        return volume;
-    }
-
-    /**
-     * Sets the trading volume of the stock.
-     * 
-     * @param volume the volume of the stock traded
-     */
-    public void setVolume(double volume) {
+    public StockData(LocalDate date, double open, double close, double high, double low, long volume) {
+        this.date = date;
+        this.open = open;
+        this.close = close;
+        this.high = high;
+        this.low = low;
         this.volume = volume;
     }
 
     /**
-     * Gets the date the stock data was recorded.
-     * 
      * @return the date of the stock data
      */
-    public Date getDate() {
-        return date;
-    }
+    public LocalDate getDate() { return date; }
 
     /**
-     * Sets the date for the stock data.
-     * 
-     * @param date the date the stock data was recorded
+     * @return the opening price
      */
-    public void setDate(Date date) {
-        this.date = date;
-    }
+    public double getOpen() { return open; }
+
+    /**
+     * @return the closing price
+     */
+    public double getClose() { return close; }
+
+    /**
+     * @return the highest price during the day
+     */
+    public double getHigh() { return high; }
+
+    /**
+     * @return the lowest price during the day
+     */
+    public double getLow() { return low; }
+
+    /**
+     * @return the trading volume
+     */
+    public long getVolume() { return volume; }
 }

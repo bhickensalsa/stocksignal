@@ -1,5 +1,7 @@
 package com.stocksignal.indicators;
 
+import java.util.List;
+
 import com.stocksignal.data.StockData;
 
 /**
@@ -9,10 +11,10 @@ import com.stocksignal.data.StockData;
 public interface Indicator {
 
     /**
-     * Calculates the value of the technical indicator based on the provided stock data.
+     * Calculates the value of the indicator based on the provided stock data.
      * 
      * @param data the stock data to be used for indicator calculation
      * @return the calculated indicator value
      */
-    double calculate(StockData data);
+    double calculate(List<StockData> data);
 }

@@ -33,6 +33,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- JSON Parsing -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20240303</version>
+        </dependency>
 
         <!-- Jackson for JSON processing (if needed) -->
         <dependency>
@@ -40,6 +46,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.18.3</version>
         </dependency>
+
     </dependencies>
 
     <build>

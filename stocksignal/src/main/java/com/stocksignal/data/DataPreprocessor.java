@@ -1,16 +1,23 @@
 package com.stocksignal.data;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * The DataPreprocessor class is responsible for preprocessing collected stock data, 
- * such as cleaning, normalizing, or transforming the data for further analysis.
+ * Responsible for preparing raw stock data for analysis.
  */
 public class DataPreprocessor {
 
     /**
-     * Preprocesses the collected stock data.
-     * Placeholder logic for data preprocessing tasks such as cleaning and normalizing.
+     * Cleans and transforms raw stock data.
+     * 
+     * @param rawData List of raw StockData
+     * @return List of cleaned and sorted StockData
      */
-    public void preprocessData() {
-        System.out.println("Preprocessing stock data...");
+    public List<StockData> preprocess(List<StockData> rawData) {
+        return rawData.stream()
+            .filter(d -> d.getClose() > 0 && d.getVolume() > 0) // Remove bad data
+            .sorted((d1, d2) -> d1.getDate().compareTo(d2.getDate())) // Sort by date
+            .collect(Collectors.toList());
     }
 }
