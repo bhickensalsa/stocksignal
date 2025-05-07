@@ -8,19 +8,21 @@ import com.stocksignal.indicators.technical.SMA;
 import java.util.List;
 
 /**
- * The TrendFollowingStrategy combines a long-term Simple Moving Average (SMA) with the MACD (Moving Average Convergence Divergence)
- * to identify trend-based buy/sell signals.
- * 
- * This strategy works by:
- * - Generating a buy signal when the stock price is above the SMA and the MACD line crosses above the MACD signal line.
- * - Generating a sell signal when the stock price is below the SMA and the MACD line crosses below the MACD signal line.
+ * A strategy that combines the Simple Moving Average (SMA) with the Moving Average Convergence Divergence (MACD)
+ * indicator to generate trend-following buy and sell signals.
+ *
+ * <p>This strategy generates:</p>
+ * <ul>
+ *   <li>A buy signal when the stock price is above the SMA and the MACD line crosses above the MACD signal line.</li>
+ *   <li>A sell signal when the stock price is below the SMA and the MACD line crosses below the MACD signal line.</li>
+ * </ul>
  */
 public class TrendFollowingStrategy implements Strategy {
 
-    /** List of historical stock data used for calculating indicators. */
+    /** Historical stock data used for calculating indicators. */
     private List<StockData> historicalData;
 
-    /** Period for the Simple Moving Average (SMA). Typically, values like 50 or 200 are used. */
+    /** Period for the Simple Moving Average (SMA), typically 50 or 200. */
     private final int smaPeriod;
 
     /** MACD indicator used for calculating the MACD line and MACD signal line. */
@@ -29,21 +31,21 @@ public class TrendFollowingStrategy implements Strategy {
     /** SMA indicator used for calculating the Simple Moving Average. */
     private final SMA sma;
 
-    /** The current value of the Simple Moving Average (SMA) calculated for the most recent data. */
+    /** The most recent value of the Simple Moving Average (SMA). */
     private double currentSMA;
 
-    /** The current MACD line value calculated for the most recent data. */
+    /** The most recent value of the MACD line. */
     private double macdLine;
 
-    /** The current MACD signal line value calculated for the most recent data. */
+    /** The most recent value of the MACD signal line. */
     private double macdSignal;
 
     /**
-     * Constructs a TrendFollowingStrategy with historical data and initializes the SMA and MACD indicators.
-     * 
-     * @param historicalData The list of historical stock data (typically closing prices) used to calculate indicators.
-     * @param smaPeriod The period for the SMA calculation (e.g., 200 for a long-term trend).
-     * @throws DataProcessingException If there is insufficient data for the SMA period.
+     * Constructs a TrendFollowingStrategy with the specified historical data and SMA period.
+     *
+     * @param historicalData the list of historical stock data (typically closing prices) used to calculate indicators.
+     * @param smaPeriod the period for the SMA calculation (e.g., 200 for long-term trend analysis).
+     * @throws DataProcessingException if there is insufficient data to calculate the SMA.
      */
     public TrendFollowingStrategy(List<StockData> historicalData, int smaPeriod) {
         if (historicalData == null || historicalData.size() < smaPeriod) {
@@ -56,19 +58,44 @@ public class TrendFollowingStrategy implements Strategy {
     }
 
     /**
-     * Refreshes the historical data with new stock data.
-     * 
-     * @param newHistoricalData The fresh historical data to use for recalculating indicators.
+     * Updates the historical stock data used for recalculating indicators.
+     *
+     * @param newHistoricalData the fresh historical stock data to use for recalculating indicators.
      */
     public void refreshHistoricalData(List<StockData> newHistoricalData) {
         this.historicalData = newHistoricalData;
     }
 
     /**
-     * Precomputes the indicators (SMA and MACD) based on the most recent historical data.
-     * This method calculates the current SMA and MACD values using the most recent 'smaPeriod' data points.
-     * 
-     * @throws DataProcessingException If there is an issue with the data processing or if the data is insufficient.
+     * Updates the internal dataset and recalculates the indicators.
+     *
+     * <p>This method should be called whenever new market data is available to ensure the strategy uses the latest data for decision making.</p>
+     *
+     * @param newData the latest stock data entries.
+     */
+    @Override
+    public void updateData(List<StockData> newData) {
+        refreshHistoricalData(newData);
+        calculateIndicators();
+    }
+
+    /**
+     * Returns the number of historical data points required for indicator calculations.
+     *
+     * @return the number of historical data points required (equal to the SMA period).
+     */
+    @Override
+    public int getLookbackPeriod() {
+        return smaPeriod;
+    }
+
+    /**
+     * Calculates the current SMA and MACD indicators using the most recent data.
+     *
+     * <p>The method calculates the SMA using the most recent data points for the specified SMA period,
+     * and calculates the MACD line and signal line using the same data.</p>
+     *
+     * @throws DataProcessingException if there is an issue with the data processing or if there is insufficient data.
      */
     @Override
     public void calculateIndicators() {
@@ -76,29 +103,26 @@ public class TrendFollowingStrategy implements Strategy {
             // Get the most recent data (the last 'smaPeriod' data points)
             List<StockData> recentData = historicalData.subList(historicalData.size() - smaPeriod, historicalData.size());
 
-            // Calculate the current SMA using the recent data
+            // Calculate the current SMA
             this.currentSMA = sma.calculate(recentData);
 
-            // Calculate the MACD and signal line values using the recent data
+            // Calculate the MACD and signal line values
             double[] macdValues = macd.calculate(recentData, true);
             this.macdLine = macdValues[0];  // MACD line
             this.macdSignal = macdValues[1];  // Signal line
 
         } catch (DataProcessingException e) {
-            // Re-throw the exception with additional context
             throw new DataProcessingException("Failed to calculate indicators: " + e.getMessage());
         }
     }
 
     /**
-     * Determines whether a buy signal is generated based on the current price, SMA, and MACD crossover.
-     * 
-     * A buy signal is generated when:
-     * - The current stock price is above the calculated SMA, indicating an uptrend.
-     * - The MACD line is above the MACD signal line, indicating bullish momentum.
-     * 
-     * @return true if the stock should be bought, false otherwise.
-     * @throws DataProcessingException If the historical data is empty or there are issues with the data.
+     * Determines if a buy signal is generated based on the current stock price, SMA, and MACD crossover.
+     *
+     * <p>A buy signal is generated when the stock price is above the SMA (indicating an uptrend) and the MACD line crosses above the MACD signal line (indicating bullish momentum).</p>
+     *
+     * @return {@code true} if a buy signal is generated, {@code false} otherwise.
+     * @throws DataProcessingException if the historical data is empty or there is an issue with the data.
      */
     @Override
     public boolean shouldBuy() {
@@ -115,14 +139,12 @@ public class TrendFollowingStrategy implements Strategy {
     }
 
     /**
-     * Determines whether a sell signal is generated based on the current price, SMA, and MACD crossover.
-     * 
-     * A sell signal is generated when:
-     * - The current stock price is below the calculated SMA, indicating a downtrend.
-     * - The MACD line is below the MACD signal line, indicating bearish momentum.
-     * 
-     * @return true if the stock should be sold, false otherwise.
-     * @throws DataProcessingException If the historical data is empty or there are issues with the data.
+     * Determines if a sell signal is generated based on the current stock price, SMA, and MACD crossover.
+     *
+     * <p>A sell signal is generated when the stock price is below the SMA (indicating a downtrend) and the MACD line crosses below the MACD signal line (indicating bearish momentum).</p>
+     *
+     * @return {@code true} if a sell signal is generated, {@code false} otherwise.
+     * @throws DataProcessingException if the historical data is empty or there is an issue with the data.
      */
     @Override
     public boolean shouldSell() {

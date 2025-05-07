@@ -8,48 +8,44 @@ import com.stocksignal.indicators.technical.SMA;
 import java.util.List;
 
 /**
- * A strategy that uses the Golden Cross signal to determine buy and sell opportunities.
- * <p>
- * A Golden Cross occurs when a short-term moving average crosses above a long-term moving average.
- * A Death Cross (used for selling) occurs when the short-term moving average crosses below the long-term moving average.
- * This strategy signals a buy when a Golden Cross occurs and a sell when a Death Cross occurs.
- * </p>
+ * A trading strategy based on the Golden Cross signal using simple moving averages (SMA).
+ *
+ * <p>A Golden Cross occurs when a short-term SMA crosses above a long-term SMA,
+ * indicating a potential upward trend. Conversely, a Death Cross occurs when the
+ * short-term SMA crosses below the long-term SMA, signaling a potential downward trend.
+ * This strategy generates buy signals on a Golden Cross and sell signals on a Death Cross.</p>
  */
 public class GoldenCrossStrategy implements Strategy {
 
-    /** The list of historical stock data used to calculate the indicators. */
-    private final List<StockData> historicalData;
+    /** Historical stock data used to calculate indicators. */
+    private List<StockData> historicalData;
 
-    /** The short-term period for the Simple Moving Average (SMA), typically set to 50 days. */
+    /** Short-term SMA period (e.g., 50 days). */
     private final int shortPeriod;
 
-    /** The long-term period for the Simple Moving Average (SMA), typically set to 200 days. */
+    /** Long-term SMA period (e.g., 200 days). */
     private final int longPeriod;
 
-    /** The current short-term SMA value calculated from the most recent data. */
+    /** Most recent short-term SMA. */
     private double currentShortSMA;
 
-    /** The current long-term SMA value calculated from the most recent data. */
+    /** Most recent long-term SMA. */
     private double currentLongSMA;
 
-    /** The previous short-term SMA value calculated from the data prior to the most recent. */
+    /** Previous short-term SMA (used for detecting crossovers). */
     private double previousShortSMA;
 
-    /** The previous long-term SMA value calculated from the data prior to the most recent. */
+    /** Previous long-term SMA (used for detecting crossovers). */
     private double previousLongSMA;
 
     /**
-     * Constructs a GoldenCrossStrategy with the specified historical data and moving average periods.
-     * <p>
-     * The short-period SMA must be less than the long-period SMA. The historical data must be large enough
-     * to support both the short and long period calculations.
-     * </p>
+     * Constructs a GoldenCrossStrategy using the specified SMA periods and historical stock data.
      *
-     * @param historicalData the list of historical stock data (must be sorted by date in ascending order).
-     * @param shortPeriod    the short-term period for the SMA (e.g., 50).
-     * @param longPeriod     the long-term period for the SMA (e.g., 200).
-     * @throws ConfigurationException if the short period is not less than the long period.
-     * @throws DataProcessingException if there is not enough data to evaluate the strategy.
+     * @param historicalData the stock data to use (must be in chronological order).
+     * @param shortPeriod the short-term SMA period.
+     * @param longPeriod the long-term SMA period.
+     * @throws ConfigurationException if shortPeriod is not less than longPeriod.
+     * @throws DataProcessingException if there is insufficient data for the longest SMA calculation.
      */
     public GoldenCrossStrategy(List<StockData> historicalData, int shortPeriod, int longPeriod) {
         if (shortPeriod >= longPeriod) {
@@ -64,13 +60,44 @@ public class GoldenCrossStrategy implements Strategy {
     }
 
     /**
-     * Calculates the short-term and long-term SMAs (Simple Moving Averages) for the most recent data and the previous data.
-     * <p>
-     * This method calculates the SMAs using the most recent `longPeriod` stock data for the current values,
-     * and the previous `longPeriod` stock data for the previous values.
-     * </p>
-     * 
-     * @throws DataProcessingException if there is an error during the SMA calculation.
+     * Updates the historical stock data used for indicator calculations.
+     *
+     * @param newHistoricalData new stock data to replace the current dataset.
+     */
+    public void refreshHistoricalData(List<StockData> newHistoricalData) {
+        this.historicalData = newHistoricalData;
+    }
+
+    /**
+     * Updates the internal dataset and recalculates the technical indicators.
+     *
+     * <p>This should be called whenever new market data becomes available.</p>
+     *
+     * @param newData latest stock data entries.
+     */
+    @Override
+    public void updateData(List<StockData> newData) {
+        refreshHistoricalData(newData);
+        calculateIndicators();
+    }
+
+    /**
+     * Returns the number of data points required to perform reliable indicator calculations.
+     *
+     * @return the greater of the short-term and long-term SMA periods.
+     */
+    @Override
+    public int getLookbackPeriod() {
+        return Math.max(shortPeriod, longPeriod);
+    }
+
+    /**
+     * Calculates current and previous SMAs based on the historical stock data.
+     *
+     * <p>Two sets of SMAs are calculated: one for the most recent period, and one for the period just before it.
+     * These values are used to detect Golden or Death Cross signals.</p>
+     *
+     * @throws DataProcessingException if any error occurs during SMA calculation.
      */
     @Override
     public void calculateIndicators() {
@@ -78,54 +105,41 @@ public class GoldenCrossStrategy implements Strategy {
             SMA shortSMA = new SMA(shortPeriod);
             SMA longSMA = new SMA(longPeriod);
 
-            // Use the most recent data for the current SMA calculations
-            List<StockData> recentData = historicalData.subList(historicalData.size() - longPeriod, historicalData.size());
+            List<StockData> recentData = historicalData.subList(historicalData.size() - longPeriod - 1, historicalData.size() - 1);
+            List<StockData> previousData = historicalData.subList(historicalData.size() - longPeriod - 1, historicalData.size() - 1);
+
             currentShortSMA = shortSMA.calculate(recentData);
             currentLongSMA = longSMA.calculate(recentData);
-
-            // Use the previous data for the previous SMA calculations
-            List<StockData> previousData = historicalData.subList(historicalData.size() - longPeriod - 1, historicalData.size() - 1);
             previousShortSMA = shortSMA.calculate(previousData);
             previousLongSMA = longSMA.calculate(previousData);
         } catch (DataProcessingException e) {
-            // Re-throw with additional context to indicate the error occurred during indicator calculation
             throw new DataProcessingException("Error calculating indicators: " + e.getMessage());
         }
     }
 
     /**
-     * Determines whether the strategy signals a buy opportunity based on the Golden Cross.
-     * <p>
-     * A buy signal is generated when the short-term SMA crosses above the long-term SMA, 
-     * indicating a potential upward trend (Golden Cross).
-     * </p>
+     * Determines if the strategy generates a buy signal based on the Golden Cross.
      *
-     * @return true if a buy signal is generated, false otherwise.
+     * <p>A buy signal is generated when the short-term SMA crosses above the long-term SMA.</p>
+     *
+     * @return {@code true} if a Golden Cross occurred; {@code false} otherwise.
      */
     @Override
     public boolean shouldBuy() {
-        // Ensure indicators are up to date before making a decision
         calculateIndicators();
-        
-        // A Golden Cross occurs when the current short-term SMA crosses above the current long-term SMA
         return previousShortSMA <= previousLongSMA && currentShortSMA > currentLongSMA;
     }
 
     /**
-     * Determines whether the strategy signals a sell opportunity based on the Death Cross.
-     * <p>
-     * A sell signal is generated when the short-term SMA crosses below the long-term SMA,
-     * indicating a potential downward trend (Death Cross).
-     * </p>
+     * Determines if the strategy generates a sell signal based on the Death Cross.
      *
-     * @return true if a sell signal is generated, false otherwise.
+     * <p>A sell signal is generated when the short-term SMA crosses below the long-term SMA.</p>
+     *
+     * @return {@code true} if a Death Cross occurred; {@code false} otherwise.
      */
     @Override
     public boolean shouldSell() {
-        // Ensure indicators are up to date before making a decision
         calculateIndicators();
-
-        // A Death Cross occurs when the current short-term SMA crosses below the current long-term SMA
         return previousShortSMA >= previousLongSMA && currentShortSMA < currentLongSMA;
     }
 }

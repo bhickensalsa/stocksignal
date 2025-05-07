@@ -21,6 +21,20 @@ public class DataPreprocessor {
      * @throws DataProcessingException if data is null, empty, or all entries are filtered out
      */
     public List<StockData> preprocess(List<StockData> rawData) {
+        return preprocess(rawData, -1); // -1 means no lookback restriction
+    }
+
+    /**
+     * Cleans and transforms raw stock data, with an optional lookback period.
+     *
+     * Filters out invalid entries, sorts data by date ascending, and trims to the most recent N entries.
+     *
+     * @param rawData List of raw StockData
+     * @param lookbackPeriod number of most recent days to include after sorting; use -1 for no limit
+     * @return List of cleaned, sorted, and optionally trimmed StockData
+     * @throws DataProcessingException if data is null, empty, or all entries are filtered out
+     */
+    public List<StockData> preprocess(List<StockData> rawData, int lookbackPeriod) {
         if (rawData == null || rawData.isEmpty()) {
             throw new DataProcessingException("Stock data list is null or empty.");
         }
@@ -35,6 +49,9 @@ public class DataPreprocessor {
             throw new DataProcessingException("No valid stock data available after preprocessing.");
         }
 
+        if (lookbackPeriod > 0 && lookbackPeriod < preProcessedData.size()) {
+            return preProcessedData.subList(preProcessedData.size() - lookbackPeriod, preProcessedData.size());
+        }
         return preProcessedData;
     }
 }

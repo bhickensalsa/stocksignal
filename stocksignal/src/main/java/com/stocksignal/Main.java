@@ -3,11 +3,13 @@ package com.stocksignal;
 import java.io.IOException;
 import java.util.List;
 
+import com.stocksignal.backtesting.BacktestEngine;
 import com.stocksignal.data.AlphaVantageClient;
+import com.stocksignal.data.DataPreprocessor;
 import com.stocksignal.data.StockData;
 import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
-import com.stocksignal.strategies.TrendFollowingStrategy;
+import com.stocksignal.strategies.GoldenCrossStrategy;
 
 /**
  * The Main class serves as the entry point for running the Stock Signal application.
@@ -29,7 +31,8 @@ public class Main {
      */
     public static void main(String[] args) {
         String symbol = "GOOGL";  // The stock symbol to analyze (e.g., "GOOGL" for Alphabet Inc.)
-        int smaPeriod = 200;      // The period for Simple Moving Average (SMA) to be used for trend-following
+        int shortPeriod = 50;
+        int longPeriod = 200;
         List<StockData> historicalData;
 
         // Initialize AlphaVantageClient to fetch stock data
@@ -37,35 +40,31 @@ public class Main {
 
         try {
             // Fetch historical stock data (e.g., the past 201 days for a 200-day SMA)
-            historicalData = fetcher.fetchDailyStockData(symbol, smaPeriod + 1, false);
+            historicalData = fetcher.fetchDailyStockData(symbol, longPeriod + 1, false);
         } catch (IOException e) {
             // If there's an issue with network or the API, throw a ConfigurationException
             throw new ConfigurationException("Couldn't fetch historical data. " + e.getMessage());
         }
 
+        // Clean the data
+        DataPreprocessor preprocessor = new DataPreprocessor();
+        List<StockData> cleanData = preprocessor.preprocess(historicalData, longPeriod + 1);
+
         // Check if the historical data is null or has fewer data points than required
-        if (historicalData == null) {
+        if (cleanData == null) {
             throw new DataProcessingException("Parsed stock data list is null.");
         }
-        if (historicalData.size() < smaPeriod) {
-            throw new DataProcessingException(String.format("Warning: Only %d data points available, but %d requested.\n", historicalData.size(), smaPeriod));
+        if (cleanData.size() < longPeriod) {
+            throw new DataProcessingException(String.format("Warning: Only %d data points available, but %d requested.\n", cleanData.size(), longPeriod));
         }
 
-        // Initialize the TrendFollowingStrategy with the historical data and the SMA period
-        TrendFollowingStrategy TFStrategy = new TrendFollowingStrategy(historicalData, smaPeriod);
+        // Initialize the Strategy
+        GoldenCrossStrategy GCStrat = new GoldenCrossStrategy(cleanData, shortPeriod, longPeriod);
 
-        // Check if the strategy signals a buy or sell
-        boolean buy = TFStrategy.shouldBuy();
-        boolean sell = TFStrategy.shouldSell();
-
-        // Print the decision to the console
-        if (buy) {
-            System.out.println("Should buy: " + buy);
-        }
-        if (sell) {
-            System.out.println("Should sell: " + sell);
-        } else {
-            System.out.println("Hold");
-        }
+        // Backtest
+        BacktestEngine backtest = new BacktestEngine(GCStrat, cleanData, 2000, 2, true);
+        
+        // Run backtest
+        backtest.runBacktest();
     }
 }
