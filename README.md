@@ -86,7 +86,7 @@ Contributions are welcome! If you would like to contribute, please fork the repo
 
 * Alpha Vantage API for providing free stock data.
 * SLF4J and Logback for the logging framework.
-* OpenAI and Gemini for assisting in code writing and refactoring.
+* OpenAI and Gemini for assisting in code writing.
 
 ## Contact
 

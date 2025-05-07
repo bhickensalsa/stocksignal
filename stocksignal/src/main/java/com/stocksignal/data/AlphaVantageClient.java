@@ -18,6 +18,11 @@ import com.stocksignal.exceptions.DataProcessingException;
 /**
  * AlphaVantageClient is responsible for interacting with the Alpha Vantage API
  * to retrieve stock market data, including daily time series and EPS data.
+ * <p>
+ * This class handles communication with the Alpha Vantage API, including
+ * retrieving stock data (daily time series) and optional Earnings Per Share (EPS) data.
+ * It uses OkHttpClient for making HTTP requests and JSON parsing for handling API responses.
+ * </p>
  */
 public class AlphaVantageClient {
 
@@ -25,6 +30,10 @@ public class AlphaVantageClient {
     private final String baseUrl;
     private final OkHttpClient client;
 
+    /**
+     * Default constructor that initializes the API client with the API key
+     * loaded from the configuration file.
+     */
     public AlphaVantageClient() {
         this.apiKey = loadApiKey();
         this.baseUrl = "https://www.alphavantage.co/query";
@@ -56,6 +65,7 @@ public class AlphaVantageClient {
 
     /**
      * Fetches daily time series stock data for the given symbol, without EPS data.
+     * Uses default settings, which do not include EPS information.
      *
      * @param symbol the stock ticker symbol (e.g., "AAPL", "GOOGL")
      * @param dataPoints the number of most recent daily data points to return
@@ -121,6 +131,7 @@ public class AlphaVantageClient {
                     double currentEPS = Double.parseDouble(earnings.getJSONObject(0).getString("reportedEPS"));
                     double previousEPS = Double.parseDouble(earnings.getJSONObject(1).getString("reportedEPS"));
 
+                    // Parse stock data including EPS
                     stockDataList = StockDataParser.parse(json, symbol, currentEPS, previousEPS);
                 } catch (Exception e) {
                     throw new DataProcessingException("Failed to fetch EPS data for symbol: " + symbol, e);
