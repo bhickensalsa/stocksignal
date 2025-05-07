@@ -6,6 +6,7 @@ import java.util.List;
 import com.stocksignal.data.AlphaVantageClient;
 import com.stocksignal.data.StockData;
 import com.stocksignal.exceptions.ConfigurationException;
+import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.strategies.TrendFollowingStrategy;
 
 /**
@@ -22,16 +23,24 @@ public class Main {
      * @param args command-line arguments (if any)
      */
     public static void main(String[] args) {
-        String symbol = "GOOGL"; // Example symbol
-        int smaPeriod = 50;
+        String symbol = "GOOGL"; // Symbol
+        int smaPeriod = 200;
         List<StockData> historicalData;
 
         AlphaVantageClient fetcher = new AlphaVantageClient();
 
         try {
-            historicalData = fetcher.fetchDailyStockData(symbol, false);
+            historicalData = fetcher.fetchDailyStockData(symbol, smaPeriod + 1, false);
         } catch (IOException e) {
             throw new ConfigurationException("Couldnt fetch historical data. " + e.getMessage());
+        }
+
+
+        if (historicalData == null) {
+            throw new DataProcessingException("Parsed stock data list is null");
+        }
+        if (historicalData.size() < smaPeriod) {
+            throw new DataProcessingException(String.format("Warning: Only %d data points available, but %d requested.\n", historicalData.size(), smaPeriod));
         }
 
         TrendFollowingStrategy TFStrategy = new TrendFollowingStrategy(historicalData, smaPeriod);

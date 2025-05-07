@@ -27,12 +27,15 @@ public class AlphaVantageClient {
 
     public AlphaVantageClient() {
         this.apiKey = loadApiKey();
-        this.baseUrl = "https://www.alphavantage.co/query";  // Assuming a fixed base URL
+        this.baseUrl = "https://www.alphavantage.co/query";
         this.client = new OkHttpClient();
     }
 
     /**
-     * Loads the API key from a configuration file.
+     * Loads the API key from the config.properties file located in the classpath resources.
+     *
+     * @return the API key as a string
+     * @throws ConfigurationException if the configuration file is missing or invalid
      */
     private String loadApiKey() {
         Properties props = new Properties();
@@ -55,50 +58,58 @@ public class AlphaVantageClient {
      * Fetches daily time series stock data for the given symbol, without EPS data.
      *
      * @param symbol the stock ticker symbol (e.g., "AAPL", "GOOGL")
-     * @return a list of StockData representing the daily time series data
+     * @param dataPoints the number of most recent daily data points to return
+     * @return a list of StockData representing the requested number of daily time series entries
      * @throws IOException if a network error occurs during the HTTP request
-     * @throws DataProcessingException if the response is not successful or fails to be parsed
+     * @throws DataProcessingException if the API response is invalid or parsing fails
      */
-    public List<StockData> fetchDailyStockData(String symbol) throws IOException {
-        return fetchDailyStockData(symbol, false);  // Default: Don't include EPS
+    public List<StockData> fetchDailyStockData(String symbol, int dataPoints) throws IOException {
+        return fetchDailyStockData(symbol, dataPoints, false); // Default: don't include EPS
     }
 
     /**
      * Fetches daily time series stock data for the given symbol, with optional EPS data.
+     * Automatically chooses between 'compact' (100 data points) and 'full' (full historical)
+     * output size based on the requested dataPoints value.
      *
      * @param symbol the stock ticker symbol (e.g., "AAPL", "GOOGL")
-     * @param includeEPS flag indicating whether to include EPS data
-     * @return a list of StockData representing the daily time series data
+     * @param dataPoints the number of most recent daily data points to return
+     * @param includeEPS flag indicating whether to enrich stock data with EPS information
+     * @return a list of StockData representing the requested number of daily time series entries
      * @throws IOException if a network error occurs during the HTTP request
-     * @throws DataProcessingException if the response is not successful or fails to be parsed
+     * @throws DataProcessingException if the API response is invalid or parsing fails
      */
-    public List<StockData> fetchDailyStockData(String symbol, boolean includeEPS) throws IOException {
-        String url = String.format("%s?function=TIME_SERIES_DAILY&symbol=%s&apikey=%s", baseUrl, symbol, apiKey);
+    public List<StockData> fetchDailyStockData(String symbol, int dataPoints, boolean includeEPS) throws IOException {
+        // Use 'full' for over 100 data points, otherwise use 'compact'
+        String outputSize = dataPoints > 100 ? "full" : "compact";
 
-        // Create the HTTP request using OkHttpClient
+        // Prepare the daily adjusted stock data request URL
+        String url = String.format(
+            "%s?function=TIME_SERIES_DAILY&symbol=%s&outputsize=%s&apikey=%s",
+            baseUrl, symbol, outputSize, apiKey
+        );
+
         Request request = new Request.Builder().url(url).build();
 
-        // Execute the request and handle the response
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 throw new DataProcessingException("API request failed: " + response.message());
             }
 
-            // Parse the JSON response body into a list of StockData objects
             String json = response.body().string();
-
             List<StockData> stockDataList;
 
             if (includeEPS) {
-                // Fetch EPS data
-                String epsUrl = String.format("%s?function=EARNINGS&symbol=%s&apikey=%s", baseUrl, symbol, apiKey);
+                // If EPS data is requested, make an additional API call to fetch earnings
+                String epsUrl = String.format(
+                    "%s?function=EARNINGS&symbol=%s&apikey=%s", baseUrl, symbol, apiKey
+                );
                 Request epsRequest = new Request.Builder().url(epsUrl).build();
                 try (Response epsResponse = client.newCall(epsRequest).execute()) {
                     if (!epsResponse.isSuccessful()) {
                         throw new DataProcessingException("EPS API request failed: " + epsResponse.message());
                     }
 
-                    // Parse EPS response JSON
                     String epsJson = epsResponse.body().string();
                     JSONObject epsData = new JSONObject(epsJson);
                     JSONArray earnings = epsData.getJSONArray("annualEarnings");
@@ -110,17 +121,17 @@ public class AlphaVantageClient {
                     double currentEPS = Double.parseDouble(earnings.getJSONObject(0).getString("reportedEPS"));
                     double previousEPS = Double.parseDouble(earnings.getJSONObject(1).getString("reportedEPS"));
 
-                    // Parse stock data with EPS values included
                     stockDataList = StockDataParser.parse(json, symbol, currentEPS, previousEPS);
                 } catch (Exception e) {
                     throw new DataProcessingException("Failed to fetch EPS data for symbol: " + symbol, e);
                 }
             } else {
-                // Parse stock data without EPS
+                // Parse only the stock data if EPS is not required
                 stockDataList = StockDataParser.parse(json);
             }
 
-            return stockDataList;
+            // Return only the number of data points requested, up to the available amount
+            return stockDataList.subList(0, Math.min(dataPoints, stockDataList.size()));
         }
     }
 }
