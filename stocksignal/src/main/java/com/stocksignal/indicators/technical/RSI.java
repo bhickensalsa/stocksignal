@@ -1,11 +1,11 @@
 package com.stocksignal.indicators.technical;
 
+import java.util.List;
+
 import com.stocksignal.data.StockData;
 import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.indicators.Indicator;
-
-import java.util.List;
 
 /**
  * Calculates the Relative Strength Index (RSI) for a given stock.

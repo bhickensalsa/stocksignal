@@ -1,11 +1,15 @@
 package com.stocksignal.indicators.technical;
 
 import com.stocksignal.data.StockData;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The MACD (Moving Average Convergence Divergence) is a trend-following momentum indicator.
  * It shows the relationship between two EMAs of a stock's price.
+ * 
+ * This implementation uses external static calculators for EMA and signal line computation.
  */
 public class MACD {
 
@@ -15,9 +19,9 @@ public class MACD {
 
     /**
      * Constructor to initialize MACD with the periods for short, long, and signal.
-     * 
-     * @param shortPeriod the short period for the MACD (e.g., 12)
-     * @param longPeriod  the long period for the MACD (e.g., 26)
+     *
+     * @param shortPeriod  the short period for the MACD (e.g., 12)
+     * @param longPeriod   the long period for the MACD (e.g., 26)
      * @param signalPeriod the signal period for the MACD (e.g., 9)
      */
     public MACD(int shortPeriod, int longPeriod, int signalPeriod) {
@@ -28,69 +32,56 @@ public class MACD {
 
     /**
      * Calculates just the MACD line (difference between short and long EMAs).
-     * This method will return the MACD line as a single double value.
-     * 
+     *
      * @param data the list of historical stock data
-     * @return the MACD line
+     * @return the MACD line value
      */
     public double calculate(List<StockData> data) {
-        double shortEMA = calculateEMA(data, shortPeriod);
-        double longEMA = calculateEMA(data, longPeriod);
-        return shortEMA - longEMA;  // MACD line is the difference
+        double shortEMA = EMACalculator.calculateFromStockData(data, shortPeriod);
+        double longEMA = EMACalculator.calculateFromStockData(data, longPeriod);
+        return shortEMA - longEMA;
     }
 
     /**
-     * Calculates the MACD, Signal Line, and Histogram for the given list of stock data.
-     * This method will return all three components in a double array.
-     * 
-     * @param data the list of historical stock data
+     * Calculates the MACD line, signal line, and histogram from the stock data.
+     *
+     * @param data          the list of historical stock data
+     * @param includeSignal whether to include signal line and histogram
      * @return a double array where:
-     *   - index 0: MACD line
-     *   - index 1: Signal line
-     *   - index 2: MACD Histogram
+     *         - index 0: MACD line
+     *         - index 1: Signal line (if included)
+     *         - index 2: Histogram (if included)
      */
     public double[] calculate(List<StockData> data, boolean includeSignal) {
-        double shortEMA = calculateEMA(data, shortPeriod);
-        double longEMA = calculateEMA(data, longPeriod);
-
-        // MACD line: difference between short and long EMAs
+        double shortEMA = EMACalculator.calculateFromStockData(data, shortPeriod);
+        double longEMA = EMACalculator.calculateFromStockData(data, longPeriod);
         double macdLine = shortEMA - longEMA;
 
-        // Calculate the Signal line (9-period EMA of MACD line)
-        double signalLine = calculateSignalLine(macdLine);
+        if (!includeSignal) {
+            return new double[]{macdLine};
+        }
 
-        // Optionally, calculate the MACD Histogram: difference between MACD line and Signal line
+        // Build MACD line history for signal calculation
+        List<Double> macdHistory = buildMacdHistory(data);
+        double signalLine = SignalLineCalculator.calculate(macdHistory, signalPeriod);
         double histogram = macdLine - signalLine;
 
-        // If we need the signal line and histogram, return all three values
-        if (includeSignal) {
-            return new double[]{macdLine, signalLine, histogram};
-        }
-
-        // Otherwise, return just the MACD line
-        return new double[]{macdLine};  // Only MACD line is needed
+        return new double[]{macdLine, signalLine, histogram};
     }
 
     /**
-     * Helper method to calculate the Exponential Moving Average (EMA) for a given period.
+     * Builds a historical list of MACD line values for signal line calculation.
      */
-    private double calculateEMA(List<StockData> data, int period) {
-        double multiplier = 2.0 / (period + 1);
-        double ema = data.get(0).getClose(); // Start with the first data point (could be adjusted)
+    private List<Double> buildMacdHistory(List<StockData> data) {
+        List<Double> macdHistory = new ArrayList<>();
 
-        for (int i = 1; i < data.size(); i++) {
-            ema = (data.get(i).getClose() - ema) * multiplier + ema;
+        for (int i = longPeriod - 1; i < data.size(); i++) {
+            List<StockData> subset = data.subList(i - longPeriod + 1, i + 1);
+            double shortEMA = EMACalculator.calculateFromStockData(subset, shortPeriod);
+            double longEMA = EMACalculator.calculateFromStockData(subset, longPeriod);
+            macdHistory.add(shortEMA - longEMA);
         }
 
-        return ema;
-    }
-
-    /**
-     * Helper method to calculate the Signal Line (9-period EMA of the MACD line).
-     */
-    private double calculateSignalLine(double macdLine) {
-        // In practice, we would keep track of the previous Signal line value
-        // and calculate the next EMA based on that.
-        return macdLine; // This is a simplified version
+        return macdHistory;
     }
 }
