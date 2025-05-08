@@ -10,6 +10,7 @@ import com.stocksignal.data.StockData;
 import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.strategies.GoldenCrossStrategy;
+//import com.stocksignal.utils.AppLogger;
 
 /**
  * The Main class serves as the entry point for running the Stock Signal application.
@@ -30,7 +31,9 @@ public class Main {
      * @param args command-line arguments (if any)
      */
     public static void main(String[] args) {
-        String symbol = "GOOGL";  // The stock symbol to analyze (e.g., "GOOGL" for Alphabet Inc.)
+        String symbol = "AAPL";  // The stock symbol to analyze (e.g., "GOOGL" for Alphabet Inc.)
+        int dataListSize = 200;
+        
         int shortPeriod = 50;
         int longPeriod = 200;
         List<StockData> historicalData;
@@ -40,7 +43,7 @@ public class Main {
 
         try {
             // Fetch historical stock data (e.g., the past 201 days for a 200-day SMA)
-            historicalData = fetcher.fetchDailyStockData(symbol, longPeriod + 1, false);
+            historicalData = fetcher.fetchDailyStockData(symbol, dataListSize, false);
         } catch (IOException e) {
             // If there's an issue with network or the API, throw a ConfigurationException
             throw new ConfigurationException("Couldn't fetch historical data. " + e.getMessage());
@@ -48,7 +51,7 @@ public class Main {
 
         // Clean the data
         DataPreprocessor preprocessor = new DataPreprocessor();
-        List<StockData> cleanData = preprocessor.preprocess(historicalData, longPeriod + 1);
+        List<StockData> cleanData = preprocessor.preprocess(historicalData, longPeriod);
 
         // Check if the historical data is null or has fewer data points than required
         if (cleanData == null) {
@@ -60,6 +63,17 @@ public class Main {
 
         // Initialize the Strategy
         GoldenCrossStrategy GCStrat = new GoldenCrossStrategy(cleanData, shortPeriod, longPeriod);
+
+        /* GCStrat.calculateIndicators();
+        AppLogger.addContext(symbol, symbol);
+        if (GCStrat.shouldBuy()) {
+            AppLogger.info("Buy" + symbol);
+        } else if (GCStrat.shouldSell()) {
+            AppLogger.info("Sell" + symbol);
+        } else {
+            AppLogger.info("Hold" + symbol);
+        }
+        AppLogger.clearContext(); */
 
         // Backtest
         BacktestEngine backtest = new BacktestEngine(GCStrat, cleanData, 2000, 2, true);

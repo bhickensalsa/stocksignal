@@ -2,6 +2,8 @@ package com.stocksignal.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stocksignal.exceptions.DataProcessingException;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -84,9 +86,7 @@ public class StockDataParser {
             }
 
         } catch (Exception e) {
-            // Log the error properly (you can also throw a custom exception if required)
-            System.err.println("Error parsing stock data: " + e.getMessage());
-            e.printStackTrace();
+            throw new DataProcessingException("Error parsing stock data: " + e.getMessage());
         }
 
         return dataList;

@@ -4,7 +4,7 @@ import com.stocksignal.data.StockData;
 import com.stocksignal.exceptions.ConfigurationException;
 import com.stocksignal.exceptions.DataProcessingException;
 import com.stocksignal.indicators.fundamental.EarningsGrowth;
-import com.stocksignal.indicators.fundamental.PE_Ratio;
+import com.stocksignal.indicators.fundamental.PERatio;
 import com.stocksignal.utils.AppLogger;
 
 import java.util.List;
@@ -108,7 +108,7 @@ public class ValueInvestingStrategy implements Strategy {
             );
         }
 
-        PE_Ratio pe = new PE_Ratio(currentStock.getClose(), epsCurrent);
+        PERatio pe = new PERatio(currentStock.getClose(), epsCurrent);
         EarningsGrowth growth = new EarningsGrowth(epsCurrent, epsPrevious);
 
         this.calculatedPE = pe.calculate();

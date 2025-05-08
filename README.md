@@ -91,3 +91,118 @@ Contributions are welcome! If you would like to contribute, please fork the repo
 ## Contact
 
 For more information, please reach out to the project maintainer at `phi.jonsson@gmail.com`.
+
+```
+stocksignal
+├─ README.md
+└─ stocksignal
+   ├─ pom.xml
+   ├─ src
+   │  ├─ main
+   │  │  ├─ java
+   │  │  │  └─ com
+   │  │  │     └─ stocksignal
+   │  │  │        ├─ backtesting
+   │  │  │        │  └─ BacktestEngine.java
+   │  │  │        ├─ configuration
+   │  │  │        │  └─ AppConfig.java
+   │  │  │        ├─ data
+   │  │  │        │  ├─ AlphaVantageClient.java
+   │  │  │        │  ├─ DataPreprocessor.java
+   │  │  │        │  ├─ StockData.java
+   │  │  │        │  └─ StockDataParser.java
+   │  │  │        ├─ evaluation
+   │  │  │        │  ├─ PerformanceMetrics.java
+   │  │  │        │  └─ RiskManagement.java
+   │  │  │        ├─ exceptions
+   │  │  │        │  ├─ ConfigurationException.java
+   │  │  │        │  ├─ DataProcessingException.java
+   │  │  │        │  └─ TradingException.java
+   │  │  │        ├─ execution
+   │  │  │        │  ├─ DiscordNotifier.java
+   │  │  │        │  └─ TradeNotifier.java
+   │  │  │        ├─ indicators
+   │  │  │        │  ├─ economic
+   │  │  │        │  │  ├─ GDPGrowth.java
+   │  │  │        │  │  └─ InterestRate.java
+   │  │  │        │  ├─ fundamental
+   │  │  │        │  │  ├─ EarningsGrowth.java
+   │  │  │        │  │  └─ PE_Ratio.java
+   │  │  │        │  ├─ Indicator.java
+   │  │  │        │  └─ technical
+   │  │  │        │     ├─ EMACalculator.java
+   │  │  │        │     ├─ MACD.java
+   │  │  │        │     ├─ RSI.java
+   │  │  │        │     ├─ SignalLineCalculator.java
+   │  │  │        │     └─ SMA.java
+   │  │  │        ├─ Main.java
+   │  │  │        ├─ strategies
+   │  │  │        │  ├─ CentralAggregateStrategy.java
+   │  │  │        │  ├─ GoldenCrossStrategy.java
+   │  │  │        │  ├─ Strategy.java
+   │  │  │        │  ├─ TrendFollowingStrategy.java
+   │  │  │        │  └─ ValueInvestingStrategy.java
+   │  │  │        └─ utils
+   │  │  │           └─ AppLogger.java
+   │  │  └─ resources
+   │  │     └─ config.properties
+   │  └─ test
+   │     └─ java
+   └─ target
+      ├─ classes
+      │  ├─ com
+      │  │  └─ stocksignal
+      │  │     ├─ backtesting
+      │  │     │  └─ BacktestEngine.class
+      │  │     ├─ configuration
+      │  │     │  └─ AppConfig.class
+      │  │     ├─ data
+      │  │     │  ├─ AlphaVantageClient.class
+      │  │     │  ├─ DataPreprocessor.class
+      │  │     │  ├─ StockData.class
+      │  │     │  └─ StockDataParser.class
+      │  │     ├─ evaluation
+      │  │     │  ├─ PerformanceMetrics.class
+      │  │     │  └─ RiskManagement.class
+      │  │     ├─ exceptions
+      │  │     │  ├─ ConfigurationException.class
+      │  │     │  ├─ DataProcessingException.class
+      │  │     │  └─ TradingException.class
+      │  │     ├─ execution
+      │  │     │  ├─ DiscordNotifier.class
+      │  │     │  └─ TradeNotifier.class
+      │  │     ├─ indicators
+      │  │     │  ├─ economic
+      │  │     │  │  ├─ GDPGrowth.class
+      │  │     │  │  └─ InterestRate.class
+      │  │     │  ├─ fundamental
+      │  │     │  │  ├─ EarningsGrowth.class
+      │  │     │  │  └─ PE_Ratio.class
+      │  │     │  ├─ Indicator.class
+      │  │     │  └─ technical
+      │  │     │     ├─ EMACalculator.class
+      │  │     │     ├─ MACD.class
+      │  │     │     ├─ RSI.class
+      │  │     │     ├─ SignalLineCalculator.class
+      │  │     │     └─ SMA.class
+      │  │     ├─ Main.class
+      │  │     ├─ strategies
+      │  │     │  ├─ CentralAggregateStrategy.class
+      │  │     │  ├─ GoldenCrossStrategy.class
+      │  │     │  ├─ Strategy.class
+      │  │     │  ├─ TrendFollowingStrategy.class
+      │  │     │  └─ ValueInvestingStrategy.class
+      │  │     └─ utils
+      │  │        └─ AppLogger.class
+      │  └─ config.properties
+      ├─ generated-sources
+      │  └─ annotations
+      ├─ maven-status
+      │  └─ maven-compiler-plugin
+      │     └─ compile
+      │        └─ default-compile
+      │           ├─ createdFiles.lst
+      │           └─ inputFiles.lst
+      └─ test-classes
+
+```
