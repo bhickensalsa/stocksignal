@@ -49,38 +49,57 @@ public class BacktestEngine {
      * Executes the backtest using the provided strategy and stock data.
      */
     public void runBacktest() {
-        // No lookback period is needed, data is assumed to be clean and trimmed
-
-        // Iterate from the earliest available data to the most recent data
-        for (int i = 0; i < historicalData.size(); i++) {
-            // Sublist includes all data from the start to the current day (i)
-            List<StockData> dataSlice = historicalData.subList(i, historicalData.size());
-            strategy.updateData(dataSlice); // Update internal indicators or calculations
-
-            StockData currentDay = historicalData.get(i);
-            double price = currentDay.getClose();
-
-            AppLogger.debug(String.format("Day %s: shouldBuy=%s, shouldSell=%s", currentDay.getDate(), strategy.shouldBuy(), strategy.shouldSell()));
-
-            // Debugging: Output current portfolio status
+        // Ensure initial data is sufficient for the strategy's lookback
+        int requiredInitialData = strategy.getLookbackPeriod();
+        if (historicalData.size() < requiredInitialData) {
+             AppLogger.error("Insufficient historical data for the strategy's lookback period.");
+             return;
+        }
+    
+        // Initialize the strategy with the minimum required historical data
+        strategy.updateData(new ArrayList<>(historicalData.subList(0, requiredInitialData)));
+    
+        // Iterate through the rest of the data, providing one day at a time
+        for (int i = requiredInitialData; i < historicalData.size(); i++) {
+            StockData currentDayData = historicalData.get(i);
+    
+            // Provide the new data point to the strategy
+            List<StockData> newDataForDay = new ArrayList<>();
+            newDataForDay.add(currentDayData);
+            strategy.updateData(newDataForDay); // Strategy appends and recalculates
+    
+            double price = currentDayData.getClose();
+    
+            // Now, the strategy's shouldBuy/shouldSell methods will use indicators
+            // calculated based on data up to and including currentDayData.
+    
+            AppLogger.debug(String.format("Day %s: shouldBuy=%s, shouldSell=%s", currentDayData.getDate(), strategy.shouldBuy(), strategy.shouldSell()));
             AppLogger.debug(String.format("Current cash: $%.2f, Shares held: %.2f", cash, sharesHeld));
-
+    
+    
             // Buy decision
+            // Add checks to ensure strategy has enough data points after updateData
+            // before making a decision, although updateData should handle this.
             if (strategy.shouldBuy() && cash > 0) {
-                sharesHeld = (cash - transactionFee) / price;
-                cash = 0;
-                logTrade(String.format("BUY on %s @ %.2f", currentDay.getDate(), price));
+                 if (price > 0) { // Avoid division by zero
+                    sharesHeld = (cash - transactionFee) / price;
+                    cash = 0;
+                    logTrade(String.format("BUY on %s @ %.2f. Shares acquired: %.2f", currentDayData.getDate(), price, sharesHeld));
+                 } else {
+                     AppLogger.warn("Attempted to buy with zero or negative price on " + currentDayData.getDate());
+                 }
             }
             // Sell decision
             else if (strategy.shouldSell() && sharesHeld > 0) {
                 cash = sharesHeld * price - transactionFee;
                 sharesHeld = 0;
-                logTrade(String.format("SELL on %s @ %.2f", currentDay.getDate(), price));
+                logTrade(String.format("SELL on %s @ %.2f. Cash received: $%.2f", currentDayData.getDate(), price, cash));
             }
         }
-
-        // Calculate final value of the portfolio
-        double finalValue = cash + sharesHeld * historicalData.get(0).getClose(); // Use the most recent closing price
+    
+        // Calculate final value of the portfolio using the *last* closing price
+        double lastClosingPrice = historicalData.get(historicalData.size() - 1).getClose();
+        double finalValue = cash + sharesHeld * lastClosingPrice;
         logTrade(String.format("Final portfolio value: $%.2f", finalValue));
         evaluateStrategy(finalValue);
     }

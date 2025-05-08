@@ -25,6 +25,6 @@ C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\exceptions\
 C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\data\AlphaVantageClient.java
 C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\exceptions\ConfigurationException.java
 C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\configuration\AppConfig.java
+C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\indicators\fundamental\PERatio.java
 C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\execution\TradeNotifier.java
 C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\indicators\economic\InterestRate.java
-C:\Users\pajon\stocksignal\stocksignal\src\main\java\com\stocksignal\indicators\fundamental\PE_Ratio.java

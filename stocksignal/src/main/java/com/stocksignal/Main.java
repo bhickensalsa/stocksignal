@@ -31,11 +31,16 @@ public class Main {
      * @param args command-line arguments (if any)
      */
     public static void main(String[] args) {
-        String symbol = "AAPL";  // The stock symbol to analyze (e.g., "GOOGL" for Alphabet Inc.)
-        int dataListSize = 200;
+        String symbol = "GOOGL";  // The stock symbol to analyze (e.g., "GOOGL" for Alphabet Inc.)
+        int dataListSize = 201; // longPeriod + 1
         
         int shortPeriod = 50;
         int longPeriod = 200;
+
+        int rsiPeriod = 14;
+        int rsiBuyThreshold = 50;
+        int rsiSellThreshold = 50;
+
         List<StockData> historicalData;
 
         // Initialize AlphaVantageClient to fetch stock data
@@ -51,18 +56,18 @@ public class Main {
 
         // Clean the data
         DataPreprocessor preprocessor = new DataPreprocessor();
-        List<StockData> cleanData = preprocessor.preprocess(historicalData, longPeriod);
+        List<StockData> cleanData = preprocessor.preprocess(historicalData, longPeriod + 1);
 
         // Check if the historical data is null or has fewer data points than required
         if (cleanData == null) {
             throw new DataProcessingException("Parsed stock data list is null.");
         }
-        if (cleanData.size() < longPeriod) {
-            throw new DataProcessingException(String.format("Warning: Only %d data points available, but %d requested.\n", cleanData.size(), longPeriod));
+        if (cleanData.size() < longPeriod + 1) {
+            throw new DataProcessingException(String.format("Warning: Only %d data points available, but %d requested.\n", cleanData.size(), longPeriod + 1));
         }
 
         // Initialize the Strategy
-        GoldenCrossStrategy GCStrat = new GoldenCrossStrategy(cleanData, shortPeriod, longPeriod);
+        GoldenCrossStrategy GCStrat = new GoldenCrossStrategy(cleanData, shortPeriod, longPeriod, rsiPeriod, rsiBuyThreshold, rsiSellThreshold);
 
         /* GCStrat.calculateIndicators();
         AppLogger.addContext(symbol, symbol);

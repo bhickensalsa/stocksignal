@@ -42,9 +42,11 @@ public interface Strategy {
     void calculateIndicators();
 
     /**
-     * Updates the internal historical data used by the strategy and triggers indicator recalculation.
+     * Updates the strategy with new market data.
+     * Implementations should append this data to their internal historical data
+     * and recalculate necessary indicators.
      *
-     * @param newData The list of updated {@link StockData} objects to be used for strategy evaluation.
+     * @param newData A list of new stock data points (typically one per backtest iteration).
      */
     void updateData(List<StockData> newData);
 
